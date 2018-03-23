@@ -10,13 +10,13 @@ argv = sys.argv
 argv = argv[argv.index("--") + 1:]
 
 params = json.loads(argv[0])
-seed = parmas['seed']
+seed = params['seed']
 increment = params['increment_seed']
 output_path = params['output_path']
 width = params['width']
 height = params['height']
 
-for samples in range(params['start'],params['end'],parmas['step']):
+for samples in range(params['start'],params['end'],params['step']):
     for scene in bpy.data.scenes:
         scene.render.resolution_x = width
         scene.render.resolution_y = height
