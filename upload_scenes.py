@@ -3,6 +3,10 @@ import tarfile
 import os
 import scp
 
+#TODO
+# Add absolute path support
+# Add pubkey authorization
+# Implement lookup and collecting
 
 def create_sshclient(server, port, user, password=None):
     client = paramiko.SSHClient()
