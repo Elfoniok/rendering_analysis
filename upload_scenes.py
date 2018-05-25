@@ -2,6 +2,7 @@ import paramiko
 import tarfile
 import os
 import scp
+from pathlib import Path
 
 #TODO
 # Add absolute path support
@@ -25,9 +26,10 @@ def upload_scene(scenes_dir, host, remote_path, client):
     """
     
     remote_files = dict()
+    remote_files[host['address']] = list()
     for scene in find_scenes(scenes_dir):
 
-        name = os.path.dirname(scene)
+        name = Path(scene).stem
 
         remote_scene_dir = os.path.join(remote_path, name)
 
@@ -47,20 +49,25 @@ def upload_scene(scenes_dir, host, remote_path, client):
 
         scp_client.put(arc_name, remote_file)
 
-        remote_files[host['address']] = (remote_file, os.path.join(
-            remote_scene_dir, os.path.basename(scene)))
+        remote_files[host['address']].append( (remote_file, os.path.join(
+            remote_scene_dir, os.path.basename(scene))))
     return remote_files
 
 def prepare_remote_env(remote_path, client):
     dir_name = os.path.dirname(remote_path)
-    client.exec_command(str("tar -xvzf {} -C {}".format(remote_path,
+    stdin, stdout, stderr = client.exec_command(str("tar -xvzf {} -C {}".format(remote_path,
         dir_name)))
-    scp_client = scp.SCPClient(client.get_transport())
-    scp_client.put('render_series.py', dir_name)
+    exit_status = stdout.channel.recv_exit_status()          # Blocking call
+    if exit_status == 0:
+        scp_client = scp.SCPClient(client.get_transport())
+        scp_client.put('render_series.py', dir_name)
+    else:
+        print("Error", exit_status)
+        client.close()
 
 def render_series(client, host, remote_path,
      seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100):
-    dir_name = os.path.dirname(remote_path[host['address']][0])
+    dir_name = os.path.dirname(remote_path)
     blender_script_params = "\"{\\\"seed\\\": %r," \
     "\\\"increment_seed\\\": %r," \
     "\\\"output_path\\\":\\\"%s\\\"," \
@@ -72,7 +79,7 @@ def render_series(client, host, remote_path,
     remote_script_path = os.path.join(dir_name, "render_series.py")
     log_path = os.path.join(dir_name, "log")
     render_command = str("nohup blender -b "+
-        str(remote_path[host['address']][1]) +
+        str(remote_path) +
         " -P " + remote_script_path + " -- " +
         blender_script_params +
         " > " + log_path + " &")
