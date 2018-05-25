@@ -59,7 +59,7 @@ def prepare_remote_env(remote_path, client):
     scp_client.put('render_series.py', dir_name)
 
 def render_series(client, host, remote_path,
-     seed=0, inc_seed=1, output_path="output", width=800, height=600, start=0, end=10000, step=100):
+     seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100):
     dir_name = os.path.dirname(remote_path[host['address']][0])
     blender_script_params = "\"{\\\"seed\\\": %r," \
     "\\\"increment_seed\\\": %r," \

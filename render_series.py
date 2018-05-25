@@ -13,21 +13,26 @@ params = json.loads(argv[0])
 seed = params['seed']
 increment = params['increment_seed']
 output_path = params['output_path']
+
+#Use default if not defined
 width = params['width']
 height = params['height']
 
+def render_once(width, height, samples, seed):
+    if width != 0:
+        bpy.context.scene.render.resolution_x = width
+    if height != 0:
+        bpy.context.scene.render.resolution_y = height
+    bpy.context.scene.cycles.samples = samples
+    bpy.context.scene.cycles.seed = seed
+    bpy.context.scene.render.filepath = os.path.join(output_path,
+                                             "image_{0}.png".format(samples))
+    bpy.ops.render.render(write_still=True)
+
 for samples in range(params['start'],params['end'],params['step']):
-    for scene in bpy.data.scenes:
-        scene.render.resolution_x = width
-        scene.render.resolution_y = height
-        scene.cycles.samples = samples
-        scene.cycles.seed = seed
-        scene.render.filepath = os.path.join(output_path,
-                                             "image_{0:05d}_{1}_{2}_{3}.png".format(n,
-                                                                                    width,
-                                                                                    height,
-                                                                                    samples))
-    n += 1
+    render_once(width, height, samples, seed)
     if increment:
         seed += 1
-    bpy.ops.render.render(write_still=True)
+
+#render maximum sample image despite current stepping
+render_once(width, height, params['end'], seed)
