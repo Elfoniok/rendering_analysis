@@ -17,6 +17,7 @@ output_path = params['output_path']
 #Use default if not defined
 width = params['width']
 height = params['height']
+filename = params['filename']
 
 def render_once(width, height, samples, seed):
     if width != 0:
@@ -26,7 +27,7 @@ def render_once(width, height, samples, seed):
     bpy.context.scene.cycles.samples = samples
     bpy.context.scene.cycles.seed = seed
     bpy.context.scene.render.filepath = os.path.join(output_path,
-                                             "image_{0}.png".format(samples))
+                                             "{0}_[samples={1}].png".format(filename, samples))
     bpy.ops.render.render(write_still=True)
 
 for samples in range(params['start'],params['end'],params['step']):

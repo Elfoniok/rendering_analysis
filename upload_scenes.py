@@ -66,7 +66,7 @@ def prepare_remote_env(remote_path, client):
         client.close()
 
 def render_series(client, host, remote_path,
-     seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100):
+     seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100, filename="image"):
     dir_name = os.path.dirname(remote_path)
     blender_script_params = "\"{\\\"seed\\\": %r," \
     "\\\"increment_seed\\\": %r," \
@@ -75,7 +75,8 @@ def render_series(client, host, remote_path,
     "\\\"height\\\":%r," \
     "\\\"start\\\": %r," \
     "\\\"end\\\": %r," \
-    "\\\"step\\\": %r}\"" % (seed, inc_seed, os.path.join(dir_name, output_path), width, height, start, end, step)
+    "\\\"step\\\": %r," \
+    "\\\"filename\\\": \\\"%s\\\"}\"" % (seed, inc_seed, os.path.join(dir_name, output_path), width, height, start, end, step, filename)
     remote_script_path = os.path.join(dir_name, "render_series.py")
     log_path = os.path.join(dir_name, "log")
     render_command = str("nohup blender -b "+
@@ -84,7 +85,13 @@ def render_series(client, host, remote_path,
         blender_script_params +
         " > " + log_path + " &")
     print(render_command)
-    client.exec_command(render_command)
+    stdin, stdout, stderr = client.exec_command(render_command)
+    exit_status = stdout.channel.recv_exit_status()
+    if exit_status == 0:
+        print("Render launched")
+    else:
+        print("Error", exit_status)
+        client.close()
 
 def lookup_progress():
     pass
