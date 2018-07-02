@@ -36,7 +36,7 @@ def upload_scene(scenes_dir, host, remote_path, client):
         client.exec_command(str("mkdir -p {}".format(remote_scene_dir)))
         arc_name = name + ".tgz"
 
-        make_tarfile(arc_name, scene)
+        make_tarfile(arc_name, os.path.dirname(scene))
 
         scp_client = scp.SCPClient(client.get_transport())
         # or
@@ -55,7 +55,7 @@ def upload_scene(scenes_dir, host, remote_path, client):
 
 def prepare_remote_env(remote_path, client):
     dir_name = os.path.dirname(remote_path)
-    stdin, stdout, stderr = client.exec_command(str("tar -xvzf {} -C {}".format(remote_path,
+    stdin, stdout, stderr = client.exec_command(str("tar -xvzf {} -C {} --strip 1".format(remote_path,
         dir_name)))
     exit_status = stdout.channel.recv_exit_status()          # Blocking call
     if exit_status == 0:
@@ -66,7 +66,8 @@ def prepare_remote_env(remote_path, client):
         client.close()
 
 def render_series(client, host, remote_path,
-     seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100, filename="image"):
+     seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100, filename="image",
+     pref_device="NONE"):
     dir_name = os.path.dirname(remote_path)
     blender_script_params = "\"{\\\"seed\\\": %r," \
     "\\\"increment_seed\\\": %r," \
@@ -76,7 +77,8 @@ def render_series(client, host, remote_path,
     "\\\"start\\\": %r," \
     "\\\"end\\\": %r," \
     "\\\"step\\\": %r," \
-    "\\\"filename\\\": \\\"%s\\\"}\"" % (seed, inc_seed, os.path.join(dir_name, output_path), width, height, start, end, step, filename)
+    "\\\"pref_device\\\": \\\"%s\\\"," \
+    "\\\"filename\\\": \\\"%s\\\"}\"" % (seed, inc_seed, os.path.join(dir_name, output_path), width, height, start, end, step, pref_device, filename)
     remote_script_path = os.path.join(dir_name, "render_series.py")
     log_path = os.path.join(dir_name, "log")
     render_command = str("nohup blender -b "+
