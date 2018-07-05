@@ -3,6 +3,7 @@ import tarfile
 import os
 import scp
 from pathlib import Path
+import scenes_params
 
 #TODO
 # Add absolute path support
@@ -29,7 +30,7 @@ def upload_scene(scenes_dir, host, remote_path, client):
     remote_files[host['address']] = list()
     for scene in find_scenes(scenes_dir):
 
-        name = Path(scene).stem
+        name = scenes_params.get_scene_name( scene )
 
         remote_scene_dir = os.path.join(remote_path, name)
 
@@ -46,17 +47,27 @@ def upload_scene(scenes_dir, host, remote_path, client):
         #client.use_system_keys()
 
         remote_file = os.path.join(remote_scene_dir, arc_name)
+        remote_file = remote_file.replace( "\\", "/")
+        
+        remote_blender_file = os.path.join( remote_scene_dir, os.path.basename( scene ) )
+        remote_blender_file = remote_blender_file.replace( "\\", "/")
 
         scp_client.put(arc_name, remote_file)
-
-        remote_files[host['address']].append( (remote_file, os.path.join(
-            remote_scene_dir, os.path.basename(scene))))
+        
+        print( remote_file )
+        print( remote_blender_file )
+        
+        remote_files[host['address']].append( (remote_file, remote_blender_file ))
     return remote_files
 
 def prepare_remote_env(remote_path, client):
+
     dir_name = os.path.dirname(remote_path)
-    stdin, stdout, stderr = client.exec_command(str("tar -xvzf {} -C {} --strip 1".format(remote_path,
-        dir_name)))
+    
+    command_str = str("tar -xvzf {} -C {} --strip 1".format( remote_path, dir_name ) )
+    #print( command_str )
+    
+    stdin, stdout, stderr = client.exec_command( command_str )
     exit_status = stdout.channel.recv_exit_status()          # Blocking call
     if exit_status == 0:
         scp_client = scp.SCPClient(client.get_transport())
@@ -87,13 +98,13 @@ def render_series(client, host, remote_path,
         blender_script_params +
         " > " + log_path + " &")
     print(render_command)
-    stdin, stdout, stderr = client.exec_command(render_command)
-    exit_status = stdout.channel.recv_exit_status()
-    if exit_status == 0:
-        print("Render launched")
-    else:
-        print("Error", exit_status)
-        client.close()
+    # stdin, stdout, stderr = client.exec_command(render_command)
+    # exit_status = stdout.channel.recv_exit_status()
+    # if exit_status == 0:
+        # print("Render launched")
+    # else:
+        # print("Error", exit_status)
+        # client.close()
 
 def lookup_progress():
     pass

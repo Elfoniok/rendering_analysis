@@ -20,7 +20,7 @@ def run():
     host = { 'address': address, 'port': port}
 
     client = create_connection(host, user, password)
-    remote_files = upload_scene(scene_dir, host, "render_series1", client)
+    remote_files = upload_scene(scene_dir, host, "render_series5/", client)
     
     # with open('filename.pickle', 'wb') as handle:
     #     pickle.dump(remote_files, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -30,6 +30,8 @@ def run():
     for paths in remote_files[host['address']]:
     
         remote_path = paths[0]
+        print( paths[0] )
+        print( paths[1] )
         
         scene_name = scenes_params.get_scene_name( remote_path )
         params = scenes_params.get_scene_parameters( scene_name )
