@@ -92,3 +92,16 @@ def get_scene_parameters( scene ):
         return RenderParams()
 
 
+## ======================= ##
+##
+def print_scene_parameters( params ):
+
+    print( "Width:          " + str( params.width ) )
+    print( "Height          " + str( params.height ) )
+    print( "Samples start:  " + str( params.start ) )
+    print( "Samples end:    " + str( params.end ) )
+    print( "Samples step:   " + str( params.step ) )
+    print( "Seed:           " + str( params.seed ) )
+    print( "Seed increment: " + str( params.inc_seed ) )
+
+
