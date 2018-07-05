@@ -1,6 +1,7 @@
 import paramiko
 import tarfile
 import os
+import shutil
 import scp
 from pathlib import Path
 import scenes_params
@@ -9,6 +10,13 @@ import scenes_params
 # Add absolute path support
 # Add pubkey authorization
 # Implement lookup and collecting
+
+
+def ensure_dir(file_path):
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        
 
 def create_sshclient(server, port, user, password=None):
     client = paramiko.SSHClient()
@@ -26,6 +34,8 @@ def upload_scene(scenes_dir, host, remote_path, client):
     :param remote_path
     """
     
+    temp_dir = "temp/"
+    
     remote_files = dict()
     remote_files[host['address']] = list()
     for scene in find_scenes(scenes_dir):
@@ -35,9 +45,12 @@ def upload_scene(scenes_dir, host, remote_path, client):
         remote_scene_dir = os.path.join(remote_path, name)
 
         client.exec_command(str("mkdir -p {}".format(remote_scene_dir)))
+        
         arc_name = name + ".tgz"
+        local_arc_name = temp_dir + arc_name
 
-        make_tarfile(arc_name, os.path.dirname(scene))
+        ensure_dir( local_arc_name )
+        make_tarfile( local_arc_name, os.path.dirname(scene))
 
         scp_client = scp.SCPClient(client.get_transport())
         # or
@@ -52,12 +65,15 @@ def upload_scene(scenes_dir, host, remote_path, client):
         remote_blender_file = os.path.join( remote_scene_dir, os.path.basename( scene ) )
         remote_blender_file = remote_blender_file.replace( "\\", "/")
 
-        scp_client.put(arc_name, remote_file)
+        scp_client.put(local_arc_name, remote_file)
         
         print( remote_file )
         print( remote_blender_file )
         
         remote_files[host['address']].append( (remote_file, remote_blender_file ))
+        
+    shutil.rmtree( temp_dir )
+        
     return remote_files
 
 def prepare_remote_env(remote_path, client):
@@ -97,14 +113,17 @@ def render_series(client, host, remote_path,
         " -P " + remote_script_path + " -- " +
         blender_script_params +
         " > " + log_path + " &")
-    print(render_command)
-    # stdin, stdout, stderr = client.exec_command(render_command)
-    # exit_status = stdout.channel.recv_exit_status()
-    # if exit_status == 0:
-        # print("Render launched")
-    # else:
-        # print("Error", exit_status)
-        # client.close()
+    print( "\nExecuting command:" )
+    print( render_command )
+    print( "\n" )
+    
+    stdin, stdout, stderr = client.exec_command(render_command)
+    exit_status = stdout.channel.recv_exit_status()
+    if exit_status == 0:
+        print("Render launched")
+    else:
+        print("Error", exit_status)
+        client.close()
 
 def lookup_progress():
     pass
