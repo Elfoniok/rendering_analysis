@@ -1,4 +1,4 @@
-
+import os
 
 
 
@@ -83,7 +83,7 @@ params_map[ "tree" ].end = 2225
 ## ======================= ##
 ##
 def get_scene_name( path ):
-    scene = os.path.basename( os.path.dirname( path ) )
+    return os.path.basename( os.path.dirname( path ) )
 
 ## ======================= ##
 ##
