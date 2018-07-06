@@ -41,7 +41,7 @@ def run():
         
         render_series(client, host, paths[1], seed=params.seed, inc_seed=params.inc_seed,
          start=params.start, end=params.end, step=params.step, filename=Path(paths[1]).resolve().stem,
-         width=params.width, height=params.height)
+         width=params.width, height=params.height, pref_device="OPENCL")
 
 
 
