@@ -30,8 +30,6 @@ def run():
     for paths in remote_files[host['address']]:
     
         remote_path = paths[0]
-        print( paths[0] )
-        print( paths[1] )
         
         scene_name = scenes_params.get_scene_name( remote_path )
         params = scenes_params.get_scene_parameters( scene_name )
