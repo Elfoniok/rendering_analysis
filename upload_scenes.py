@@ -96,6 +96,10 @@ def render_series(client, host, remote_path,
      seed=0, inc_seed=1, output_path="output", width=0, height=0, start=0, end=10000, step=100, filename="image",
      pref_device="NONE"):
     dir_name = os.path.dirname(remote_path)
+    
+    output_path = os.path.join(dir_name, output_path)
+    output_path = output_path.replace( "\\", "/")
+    
     blender_script_params = "\"{\\\"seed\\\": %r," \
     "\\\"increment_seed\\\": %r," \
     "\\\"output_path\\\":\\\"%s\\\"," \
@@ -105,9 +109,14 @@ def render_series(client, host, remote_path,
     "\\\"end\\\": %r," \
     "\\\"step\\\": %r," \
     "\\\"pref_device\\\": \\\"%s\\\"," \
-    "\\\"filename\\\": \\\"%s\\\"}\"" % (seed, inc_seed, os.path.join(dir_name, output_path), width, height, start, end, step, pref_device, filename)
+    "\\\"filename\\\": \\\"%s\\\"}\"" % (seed, inc_seed, output_path, width, height, start, end, step, pref_device, filename)
+    
     remote_script_path = os.path.join(dir_name, "render_series.py")
+    remote_script_path = remote_script_path.replace( "\\", "/")
+    
     log_path = os.path.join(dir_name, "log")
+    log_path = log_path.replace( "\\", "/")
+    
     render_command = str("nohup blender -b "+
         str(remote_path) +
         " -P " + remote_script_path + " -- " +
